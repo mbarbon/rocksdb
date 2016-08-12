@@ -785,6 +785,10 @@ public class RocksDB extends RocksObject {
       throws RocksDBException {
     getSnappyCompressedBytesInto(nativeHandle_, opt.nativeHandle_, key, key.length, target);
   }
+  public int getInto(final ReadOptions opt, final byte[] key, final ByteArray target)
+      throws RocksDBException {
+    return getInto(nativeHandle_, opt.nativeHandle_, key, key.length, target);
+  }
 
   /**
    * The simplified version of get which returns a new byte array storing
@@ -892,6 +896,25 @@ public class RocksDB extends RocksObject {
     assert(keys.size() != 0);
 
     List<byte[]> values = multiGet(
+        nativeHandle_, opt.nativeHandle_, keys, keys.size());
+
+    Map<byte[], byte[]> keyValueMap = new HashMap<>();
+    for(int i = 0; i < values.size(); i++) {
+      if(values.get(i) == null) {
+        continue;
+      }
+
+      keyValueMap.put(keys.get(i), values.get(i));
+    }
+
+    return keyValueMap;
+  }
+
+  public Map<byte[], byte[]> multiGetSnappyCompressedBytes(final ReadOptions opt,
+      final List<byte[]> keys) throws RocksDBException {
+    assert(keys.size() != 0);
+
+    List<byte[]> values = multiGetSnappyCompressedBytes(
         nativeHandle_, opt.nativeHandle_, keys, keys.size());
 
     Map<byte[], byte[]> keyValueMap = new HashMap<>();
@@ -1772,6 +1795,8 @@ public class RocksDB extends RocksObject {
   protected native List<byte[]> multiGet(
       long dbHandle, long rOptHandle, List<byte[]> keys, int keysCount,
       List<ColumnFamilyHandle> cfHandles);
+  protected native List<byte[]> multiGetSnappyCompressedBytes(
+      long dbHandle, long rOptHandle, List<byte[]> keys, int keysCount);
   protected native byte[] get(
       long handle, byte[] key, int keyLen) throws RocksDBException;
   protected native byte[] get(
@@ -1789,6 +1814,9 @@ public class RocksDB extends RocksObject {
       long handle, long readOptHandle,
       byte[] key, int keyLen) throws RocksDBException;
   protected native void getSnappyCompressedBytesInto(
+      long handle, long readOptHandle,
+      byte[] key, int keyLen, ByteArray target) throws RocksDBException;
+  protected native int getInto(
       long handle, long readOptHandle,
       byte[] key, int keyLen, ByteArray target) throws RocksDBException;
   protected native byte[] get(
